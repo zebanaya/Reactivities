@@ -15,7 +15,7 @@ export default class ProfileStore {
 
   get isCurrentUser() {
     if (store.userStore.user && this.profile) {
-      return store.userStore.user.username === this.profile.username
+      return store.userStore.user.username === this.profile.username;
     }
 
     return false;
@@ -25,21 +25,36 @@ export default class ProfileStore {
     this.loadingProfile = true;
 
     try {
-        const profile = await agent.Profiles.get(username);
-        runInAction(() => {
-            this.profile = profile;
-            this.loadingProfile = false;
-        })
+      const profile = await agent.Profiles.get(username);
+      runInAction(() => {
+        this.profile = profile;
+        this.loadingProfile = false;
+      });
     } catch (error) {
       console.log(error);
       runInAction(() => {
         this.loadingProfile = false;
       });
     }
-  }
+  };
+
+  loadProfileForm = async (username: string) => {
+    if (this.profile) {
+      return this.profile;
+    } else {
+      try {
+        runInAction(() => {
+          this.loadProfile(username);
+          return this.profile;
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
 
   uploadPhoto = async (file: Blob) => {
-    this.uploading = true
+    this.uploading = true;
 
     try {
       const response = await agent.Profiles.uploadPhoto(file);
@@ -48,18 +63,18 @@ export default class ProfileStore {
         if (this.profile) {
           this.profile.photos?.push(photo);
           if (photo.isMain && store.userStore.user) {
-            store.userStore.setImage(photo.url)
-            this.profile.image = photo.url
+            store.userStore.setImage(photo.url);
+            this.profile.image = photo.url;
           }
         }
 
-        this.uploading = false
-      })
+        this.uploading = false;
+      });
     } catch (error) {
       console.log(error);
-      runInAction(() => this.uploading = false);
+      runInAction(() => (this.uploading = false));
     }
-  }
+  };
 
   setMainPhoto = async (photo: Photo) => {
     this.loading = true;
@@ -69,17 +84,17 @@ export default class ProfileStore {
       store.userStore.setImage(photo.url);
       runInAction(() => {
         if (this.profile && this.profile.photos) {
-          this.profile.photos.find(p => p.isMain)!.isMain = false;
-          this.profile.photos.find(p => p.id === photo.id)!.isMain = true;
+          this.profile.photos.find((p) => p.isMain)!.isMain = false;
+          this.profile.photos.find((p) => p.id === photo.id)!.isMain = true;
           this.profile.image = photo.url;
           this.loading = false;
         }
-      })
-    } catch(error) {
-      runInAction(() => this.loading = false);
+      });
+    } catch (error) {
+      runInAction(() => (this.loading = false));
       console.log(error);
     }
-  }
+  };
 
   deletePhoto = async (photo: Photo) => {
     this.loading = true;
@@ -88,13 +103,35 @@ export default class ProfileStore {
       await agent.Profiles.deletePhoto(photo.id);
       runInAction(() => {
         if (this.profile && this.profile.photos) {
-          this.profile.photos = this.profile.photos?.filter(p => p.id !== photo.id);
+          this.profile.photos = this.profile.photos?.filter(
+            (p) => p.id !== photo.id
+          );
           this.loading = false;
         }
-      })
-    } catch(error) {
-      runInAction(() => this.loading = false);
+      });
+    } catch (error) {
+      runInAction(() => (this.loading = false));
       console.log(error);
     }
-  }
+  };
+
+  updateProfile = async (profile: Partial<Profile>) => {
+    this.loading = true;
+    try {
+      await agent.Profiles.updateProfile(profile);
+      runInAction(() => {
+        if (
+          profile.displayName &&
+          profile.displayName !== store.userStore.user?.displayName
+        ) {
+          store.userStore.setDisplayName(profile.displayName);
+        }
+        this.profile = { ...this.profile, ...(profile as Profile) };
+        this.loading = false;
+      });
+    } catch (error) {
+      console.log(error);
+      runInAction(() => (this.loading = false));
+    }
+  };
 }

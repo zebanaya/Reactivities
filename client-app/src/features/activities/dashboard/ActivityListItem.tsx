@@ -19,7 +19,7 @@ export default function ActivityListItem({ activity }: Props) {
             content="Cancelled"
             style={{ textAlign: "center" }}
           />
-        )}r
+        )}
         <Item.Group>
           <Item>
             <Item.Image
