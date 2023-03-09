@@ -86,7 +86,7 @@ export default observer(function ActivityDetailedHeader({ activity }: Props) {
               to={`/manage/${activity.id}`}
               color="orange"
               floated="right"
-              disable={activity.isCancelled}
+              disabled={activity.isCancelled}
             >
               Manage Event
             </Button>
@@ -97,7 +97,7 @@ export default observer(function ActivityDetailedHeader({ activity }: Props) {
           </Button>
         ) : (
           <Button
-            disable={activity.isCancelled}
+            disabled={activity.isCancelled}
             loading={loading}
             onClick={updateAttendance}
             color="teal"
